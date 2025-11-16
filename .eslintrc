@@ -1,0 +1,31 @@
+{
+  "extends": ["airbnb-base", "prettier"],
+  "plugins": ["jest"],
+  "env": {
+    "node": true,
+    "es6": true,
+    "jest/globals": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018
+  },
+  "rules": {
+    "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
+    "radix": "off",
+    "no-plusplus": "off",
+    "no-underscore-dangle": "off",
+    "array-callback-return": "off",
+    "no-restricted-properties": "off",
+    "no-param-reassign": "off",
+    "no-prototype-builtins": "off",
+    "consistent-return": "off",
+    "prefer-promise-reject-errors": "off",
+    "no-unused-expressions": "off",
+    "no-use-before-define": "off",
+    "no-control-regex": "off",
+    "prefer-destructuring": "off",
+    "no-restricted-globals": "off",
+    "no-template-curly-in-string": "off",
+    "no-promise-executor-return": "off"
+  }
+}

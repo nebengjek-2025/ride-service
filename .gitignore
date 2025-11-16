@@ -1,0 +1,24 @@
+# temp files
+.DS_Store
+.tmp
+.sass-cache
+
+node_modules
+build/
+*~
+
+#IDE ignores
+.idea/
+package-lock.json
+*.log
+log
+.vscode
+.env
+coverage
+.nyc_output
+.scannerwork/
+
+# secrets
+.env
+.env.local
+config-map.yaml
