@@ -62,12 +62,12 @@ const initConsumers = async () => {
   try {
     const consumer = ConsumerManager.getInstance(project.name);
 
-    await consumer.subscribe('broadcast-pickup-passanger');
+    await consumer.subscribe('request-ride');
 
     await consumer.run((topic, partition, messageValue) => {
       /* istanbul ignore next */
       switch (topic) {
-      case 'broadcast-pickup-passanger':
+      case 'request-ride':
         /* istanbul ignore next */
         return handleMessage(topic, partition, messageValue, broadcastPickupPassanger);
       default:

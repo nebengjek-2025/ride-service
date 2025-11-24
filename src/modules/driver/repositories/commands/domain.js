@@ -102,19 +102,24 @@ class Driver {
     }
     const key = `PASSANGER:PICKUP:${data.metadata.driverId}`;
     const offerPassanger = await this.redisClient.getData(key);
+    commonHelper.info(['INFO','domain-locationUpdate'],`offerPassanger data: ${offerPassanger.data}`);
     if(!_.isEmpty(offerPassanger.data)){
       const offerData = JSON.parse(offerPassanger.data).data;
       global.io.to(data.metadata.senderId).emit('pickup-passanger', {routeSummary:offerData.routeSummary, passangerId: offerData.passangerId});
     }
-    const dataToKafka = {
-      topic: 'driver-available',
-      body: {
-        ...data,
-        available:true
-      }
-    };
-    await producer.kafkaSendProducerAsync(dataToKafka);
     const geoaddlocation = await this.redisClient.addDriverLocation(data.metadata.driverId,data.latitude,data.longitude);
+    // upsert driver available
+    const driverAvailable = await this.command.upsertDriverAvailability({
+      driverId: data.metadata.driverId,
+      isAvailable: true,
+      status: "online",
+      socketId: data.metadata.senderId
+    });
+    if(driverAvailable.err){
+      commonHelper.log(['ERROR','domain-locationUpdate'],{error:driverAvailable.err, message:'failed to upsert driver availability'});
+      return wrapper.error(driverAvailable.err);
+    }
+ 
     return wrapper.data(geoaddlocation);
   }
 
@@ -152,13 +157,50 @@ class Driver {
   }
 
   async broadcastPickupPassanger(data) {
-    if(global.io.sockets.sockets.has(data.socketId)){
-      global.io.to(data.socketId).emit('pickup-passanger', {routeSummary:data.routeSummary, passangerId: data.passangerId});
-    }else{
-      const key = `PASSANGER:PICKUP:${data.driverId}`;
-      await this.redisClient.setDataEx(key,data,300);
+    const routeSummary = await this.redisClient.getData(`USER:ROUTE:${data.message.userId}`);
+    const cacheRoute = JSON.parse(routeSummary.data);
+    const drivers = await this.redisClient.getNearbyDrivers(data.message.routeSummary?.route?.origin?.longitude || cacheRoute.route?.origin?.longitude, data.message.routeSummary?.route?.origin?.latitude || cacheRoute.route?.origin?.latitude, 3);
+    if(drivers.err){
+      // retry in case of error
+      commonHelper.log(['ERROR','domain-broadcastPickupPassanger'],{error:drivers.err, message:'failed to get nearby drivers'});
+      return wrapper.error(drivers.err);
     }
-    return wrapper.data();
+
+    if(drivers.data.length === 0){
+      commonHelper.log(['INFO','domain-broadcastPickupPassanger'],'no drivers found nearby');
+      return wrapper.error(new NotFoundError({message:'no drivers found nearby',code:4004}));
+    }
+    for(const driverId of drivers.data){
+      const driverInfo = await this.query.findDriver(driverId);
+      if(driverInfo.err || _.isEmpty(driverInfo.data)){
+        commonHelper.log(['ERROR','domain-broadcastPickupPassanger'],{error:driverInfo.err, message:`driver not found: ${driverId}`});
+        continue;
+      }
+      if(!driverInfo.data[0].is_available){
+        commonHelper.log(['INFO','domain-broadcastPickupPassanger'],`driver not available: ${driverId}`);
+        continue;
+      }
+
+      const payload = {
+        driverId,
+        passangerId: data.message.userId,
+        routeSummary: data.message.routeSummary || cacheRoute.routeSummary,
+        socketId: driverInfo.data[0].socketId
+      };
+      if(global.io.sockets.sockets.has(payload.socketId)){
+        commonHelper.log(['INFO','domain-broadcastPickupPassanger'],`driver found nearby: ${driverId}, socketId: ${payload.socketId}`);
+        const key = `PASSANGER:PICKUP:${driverId}`;
+        await this.redisClient.setDataEx(key,payload,300);
+        global.io.to(data.socketId).emit('pickup-passanger', {routeSummary:payload.routeSummary, passangerId: payload.passangerId});
+      }else{
+        commonHelper.log(['INFO','domain-broadcastPickupPassanger'],`socket ID not found in active connections: ${payload.socketId}`);
+        const key = `PASSANGER:PICKUP:${driverId}`;
+        await this.redisClient.setDataEx(key,payload,300);
+      }
+      return wrapper.data();
+    }
+    commonHelper.log(['INFO','domain-broadcastPickupPassanger'],'no drivers found nearby');
+    return wrapper.error(new NotFoundError({message:'no drivers found nearby',code:4004}));
   }
 
 }

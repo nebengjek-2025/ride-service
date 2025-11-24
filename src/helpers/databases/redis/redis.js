@@ -101,7 +101,7 @@ class Redis {
     });
   }
 
-  async getNearbyDrivers(lat, lon, radiusInKm) {
+  async getNearbyDrivers(lon, lat, radiusInKm) {
     let client = await pool.getConnection(this.config);
     if (validate.isEmpty(client)) {
       client = await pool.createConnectionPool(this.config);
@@ -112,7 +112,7 @@ class Redis {
       return wrapper.error(`Failed Get data From Redis: ${err}`);
     });
     return new Promise((resolve, reject) => {
-      clientRedis.georadius('drivers-locations', lon, lat, radiusInKm, 'km', (err, res) => {
+      clientRedis.georadius('drivers-locations', `${lon}`, `${lat}`, radiusInKm, 'km', (err, res) => {
         if (err) {
           reject(wrapper.error(err, '', 404));
         }

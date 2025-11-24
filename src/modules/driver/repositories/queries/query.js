@@ -148,6 +148,25 @@ class Query {
     const result = await this.db.preparedQuery(query, [id]);
     return result;
   }
+  
+  async findDriver(driverId) {
+    const query = `
+      SELECT 
+        da.driver_id,
+        da.is_available,
+        da.socketId,
+        da.status,
+        da.last_seen_at,
+        i.city,
+        i.jenis_kendaraan
+      FROM driver_availability da
+      LEFT JOIN info_driver i ON da.driver_id = i.driver_id
+      WHERE da.driver_id = ?;
+    `;
+
+    return await this.db.preparedQuery(query, [driverId]);
+  }
+
 
 }
 
