@@ -10,4 +10,8 @@ module.exports = (socket) => {
     data.metadata = {senderId:socket.id,userId:socket.userId, driverId:socket.driverId};
     await driverEventHandler.tripTracker(data,callback);
   });
+  socket.on('driver:request-pickup', async (data, callback) => {
+    data.metadata = {senderId:socket.id,userId:socket.userId, driverId:socket.driverId};
+    await driverEventHandler.requestPickup(data,callback);
+  });
 };

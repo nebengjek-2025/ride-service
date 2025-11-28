@@ -102,10 +102,10 @@ class Driver {
     }
     const key = `PASSANGER:PICKUP:${data.metadata.driverId}`;
     const offerPassanger = await this.redisClient.getData(key);
-    commonHelper.info(['INFO','domain-locationUpdate'],`offerPassanger data: ${offerPassanger.data}`);
+    commonHelper.log(['INFO','domain-locationUpdate'],`offerPassanger data: ${offerPassanger.data}`);
     if(!_.isEmpty(offerPassanger.data)){
       const offerData = JSON.parse(offerPassanger.data).data;
-      global.io.to(data.metadata.senderId).emit('pickup-passanger', {routeSummary:offerData.routeSummary, passangerId: offerData.passangerId});
+      global.io.to(data.metadata.senderId).emit('pickup-passanger', {routeSummary:offerData.routeSummary, passangerId: offerData.passangerId, orderId:offerData.orderId});
     }
     const geoaddlocation = await this.redisClient.addDriverLocation(data.metadata.driverId,data.latitude,data.longitude);
     // upsert driver available
@@ -155,6 +155,50 @@ class Driver {
     }
 
   }
+  
+  async requestPickup(data) {
+    try {
+      const ctx = 'domain-requestPickup';
+      const {metadata, orderId} = data;
+      const {driverId} = metadata;
+      const driverData = await this.query.findOneUser({ userId: driverId, isMitra: true });
+      if (driverData.err || !driverData.data) {
+        commonHelper.log(['ERROR', ctx], { error: driverData.err, message: 'driver not found' });
+        return wrapper.error(new NotFoundError({ message: 'driver not found', code: 4004 }));
+      }
+
+      const driver = driverData.data;
+      const offerKey = `PASSANGER:PICKUP:${driverId}`;
+      const offerPassanger = await this.redisClient.getData(offerKey);
+      if (_.isEmpty(offerPassanger.data)) {
+        commonHelper.log(['ERROR', ctx], 'pickup offer not found in redis');
+        return wrapper.error(new NotFoundError({ message: 'pickup offer not found', code: 4004 }));
+      }
+      const offerData = JSON.parse(offerPassanger.data);
+      const passangerId = offerData.passangerId;
+      const matchingEvent = {
+        eventType: 'ORDER_MATCHING',
+        orderId: offerData.orderId || orderId,
+        passangerId,
+        driverId,
+        timestamp: new Date().toISOString(),
+      };
+      const event = {
+        topic:'order-driver-request-pickup', 
+        body:matchingEvent
+      }
+      await producer.kafkaSendProducerAsync(event)
+      // set data to redis
+      const key = `DRIVER:REQUEST-PICKUP:${orderId}:${driverId}`;
+      await this.redisClient.setDataEx(key,matchingEvent,300);
+      
+      return wrapper.data(matchingEvent)
+    } catch (error) {
+      /* istanbul ignore next */
+      return wrapper.error(error);
+    }
+
+  }
 
   async broadcastPickupPassanger(data) {
     const routeSummary = await this.redisClient.getData(`USER:ROUTE:${data.message.userId}`);
@@ -185,13 +229,14 @@ class Driver {
         driverId,
         passangerId: data.message.userId,
         routeSummary: data.message.routeSummary || cacheRoute.routeSummary,
-        socketId: driverInfo.data[0].socketId
+        socketId: driverInfo.data[0].socketId,
+        orderId: data.message.orderTempId
       };
       if(global.io.sockets.sockets.has(payload.socketId)){
         commonHelper.log(['INFO','domain-broadcastPickupPassanger'],`driver found nearby: ${driverId}, socketId: ${payload.socketId}`);
         const key = `PASSANGER:PICKUP:${driverId}`;
         await this.redisClient.setDataEx(key,payload,300);
-        global.io.to(data.socketId).emit('pickup-passanger', {routeSummary:payload.routeSummary, passangerId: payload.passangerId});
+        global.io.to(data.socketId).emit('pickup-passanger', {routeSummary:payload.routeSummary, passangerId: payload.passangerId, orderId:data.message.orderTempId});
       }else{
         commonHelper.log(['INFO','domain-broadcastPickupPassanger'],`socket ID not found in active connections: ${payload.socketId}`);
         const key = `PASSANGER:PICKUP:${driverId}`;

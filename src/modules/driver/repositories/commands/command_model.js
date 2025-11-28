@@ -20,8 +20,14 @@ const tripTracker = joi.object({
   metadata: joi.object().required()
 });
 
+const requestPickup = joi.object({
+  orderId: joi.string().required(),
+  metadata: joi.object().required()
+});
+
 module.exports = {
   locationUpdate,
   tripTracker,
-  BeaconRequest
+  BeaconRequest,
+  requestPickup
 };

@@ -145,9 +145,35 @@ const tripTracker = async (data, callback) => {
   });
 };
 
+const requestPickup = async (data, callback) => {
+  const payload = data;
+  const validatePayload = commonHelper.isValidPayload(payload, commandModel.requestPickup);
+  const postRequest = async (result) => {
+    return result.err ? result :
+      /* istanbul ignore next */
+      commandHandler.requestPickup(result.data);
+  };
+  const result = await postRequest(validatePayload);
+  if (result.err){
+    callback({
+      success: false,
+      message: 'Request Pickup failed.',
+      statusCode: result.err.code || 500,
+      body: result.err
+    });
+  }
+  callback({
+    success: true,
+    message: 'Request Pickup received and processed.',
+    statusCode: 200,
+    body: 'ok'
+  });
+};
+
 module.exports = {
   locationUpdate,
   tripTracker,
+  requestPickup,
   initConsumers,
   handleMessage,
   broadcastPickupPassanger
