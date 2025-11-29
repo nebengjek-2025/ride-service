@@ -167,6 +167,19 @@ class Query {
     return await this.db.preparedQuery(query, [driverId]);
   }
 
+  async findOrder(orderId) {
+    const query = `
+      SELECT 
+        order_id,
+        passenger_id,
+        status
+      FROM orders
+      WHERE order_id = ?;
+    `;
+
+    return await this.db.preparedQuery(query, [orderId]);
+  }
+
 
 }
 

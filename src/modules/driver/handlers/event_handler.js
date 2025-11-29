@@ -63,6 +63,7 @@ const initConsumers = async () => {
     const consumer = ConsumerManager.getInstance(project.name);
 
     await consumer.subscribe('request-ride');
+    await consumer.subscribe('driver-match');
 
     await consumer.run((topic, partition, messageValue) => {
       /* istanbul ignore next */
@@ -70,6 +71,9 @@ const initConsumers = async () => {
       case 'request-ride':
         /* istanbul ignore next */
         return handleMessage(topic, partition, messageValue, broadcastPickupPassanger);
+      case 'driver-match':
+        /* istanbul ignore next */
+        return handleMessage(topic, partition, messageValue, notifyDriverForPickup);
       default:
         commonHelper.log(['INFO','event_controller'], `Unhandled topic: ${topic}`);
       }
@@ -87,6 +91,18 @@ const broadcastPickupPassanger = async(message) => {
   try {
     const postRequest = async (payload) => {
       return commandHandler.broadcastPickupPassanger(payload);
+    };
+    const result = await postRequest(message);
+    return result;
+  } catch (error) {
+    return wrapper.error(error);
+  }
+};
+
+const notifyDriverForPickup = async(message) => {
+  try {
+    const postRequest = async (payload) => {
+      return commandHandler.notifyDriverForPickup(payload);
     };
     const result = await postRequest(message);
     return result;
@@ -170,11 +186,39 @@ const requestPickup = async (data, callback) => {
   });
 };
 
+const driverGo = async (data, callback) => {
+  const payload = data;
+  const validatePayload = commonHelper.isValidPayload(payload, commandModel.requestPickup);
+  const postRequest = async (result) => {
+    return result.err ? result :
+      /* istanbul ignore next */
+      commandHandler.driverGo(result.data);
+  };
+  const result = await postRequest(validatePayload);
+  console.log(result.err,"JANCOOOK")
+  if (result.err){
+    callback({
+      success: false,
+      message: 'Driver Go failed.',
+      statusCode: result.err.code || 500,
+      body: result.err
+    });
+  }
+  callback({
+    success: true,
+    message: 'Driver Go received and processed.',
+    statusCode: 200,
+    body: 'ok'
+  });
+};
+
 module.exports = {
   locationUpdate,
   tripTracker,
   requestPickup,
   initConsumers,
   handleMessage,
-  broadcastPickupPassanger
+  broadcastPickupPassanger,
+  notifyDriverForPickup,
+  driverGo
 };

@@ -33,6 +33,15 @@ const broadcastPickupPassanger = async (data) => {
   return result;
 };
 
+const notifyDriverForPickup = async (data) => {
+  const postData = async (pyld) => {
+    const result = await driver.notifyDriverForPickup(pyld);
+    return result;
+  };
+  const result = await postData(data);
+  return result;
+};
+
 const tripTracker = async (data) => {
   const postData = async (pyld) => {
     const result = await driver.tripTracker(pyld);
@@ -51,10 +60,21 @@ const requestPickup = async (data) => {
   return result;
 };
 
+const driverGo = async (data) => {
+  const postData = async (pyld) => {
+    const result = await driver.driverGo(pyld);
+    return result;
+  };
+  const result = await postData(data);
+  return result;
+};
+
 module.exports = {
   locationUpdate,
   broadcastPickupPassanger,
   tripTracker,
   activateBeacon,
-  requestPickup
+  requestPickup,
+  notifyDriverForPickup,
+  driverGo
 };

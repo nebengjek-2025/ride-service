@@ -14,4 +14,8 @@ module.exports = (socket) => {
     data.metadata = {senderId:socket.id,userId:socket.userId, driverId:socket.driverId};
     await driverEventHandler.requestPickup(data,callback);
   });
+  socket.on('driver:go', async (data, callback) => {
+    data.metadata = {senderId:socket.id,userId:socket.userId, driverId:socket.driverId};
+    await driverEventHandler.driverGo(data,callback);
+  });
 };
