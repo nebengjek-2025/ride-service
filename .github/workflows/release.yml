@@ -6,7 +6,7 @@ on:
       - '*'
 
 env:
-  APPLICATION_NAME: 'socket-service'
+  APPLICATION_NAME: 'ride-service'
 
 jobs:
   release:
