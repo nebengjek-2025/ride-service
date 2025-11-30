@@ -1,5 +1,5 @@
 {
-  "name": "socket-service",
+  "name": "ride-service",
   "version": "1.1.4",
   "description": "",
   "main": "index.js",
@@ -18,7 +18,7 @@
   "author": "Farid Tri Wicaksono",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nebengjek/user-service.git"
+    "url": "https://github.com/nebengjek-2025/ride-service.git"
   },
   "license": "ISC",
   "dependencies": {
