@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 1.2.0 (2025-11-30)
+
+
+### Features
+
+* add event request-pickup-order ([a437766](https://github.com/nebengjek-2025/ride-service/commit/a437766316248d72e4b2f8cad6a37c50d8050463))
+* driver go ([81e84cb](https://github.com/nebengjek-2025/ride-service/commit/81e84cba15f34073dc9fed019211c66f0be92e4f))
+
+
+### Bug Fixes
+
+* adjust broadcast event socket pickup passanger ([f16592d](https://github.com/nebengjek-2025/ride-service/commit/f16592d94c97c2e86a3fbaa9e039930a648fcc85))
+* pipeline dockerfile ([38f9591](https://github.com/nebengjek-2025/ride-service/commit/38f95914d72dc6cba72429f4e4d79076baedf970))
+
 ### [1.1.4](https://github.com/nebengjek/user-service/compare/v1.1.3...v1.1.4) (2024-11-27)
 
 
