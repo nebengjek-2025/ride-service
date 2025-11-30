@@ -105,15 +105,17 @@ class Driver {
     commonHelper.log(['INFO','domain-locationUpdate'],`offerPassanger data: ${offerPassanger.data}`);
     if(!_.isEmpty(offerPassanger.data)){
       const offerData = JSON.parse(offerPassanger.data).data;
-      global.io.to(data.metadata.senderId).emit('pickup-passanger', {routeSummary:offerData.routeSummary, passangerId: offerData.passangerId, orderId:offerData.orderId});
+      global.io.to(data.metadata.senderId).emit('pickup-passanger',
+        {routeSummary:offerData.routeSummary, passangerId: offerData.passangerId, orderId:offerData.orderId});
     }
 
-    const notifyKey = `DRIVER:INTRUCSTION:${data.metadata.driverId}`;;
+    const notifyKey = `DRIVER:INTRUCSTION:${data.metadata.driverId}`;
     const notification = await this.redisClient.getData(notifyKey);
     commonHelper.log(['INFO','domain-locationUpdate'],`offerPassanger data: ${notification.data}`);
     if(!_.isEmpty(notification.data)){
       const offerData = JSON.parse(notification.data).data;
-      global.io.to(data.metadata.senderId).emit('send-driver-go-instruction', {routeSummary:offerData.routeSummary, passangerId: offerData.passangerId, orderId:offerData.orderId});
+      global.io.to(data.metadata.senderId).emit('send-driver-go-instruction',
+        {routeSummary:offerData.routeSummary, passangerId: offerData.passangerId, orderId:offerData.orderId});
     }
 
     const geoaddlocation = await this.redisClient.addDriverLocation(data.metadata.driverId,data.latitude,data.longitude);
@@ -121,14 +123,14 @@ class Driver {
     const driverAvailable = await this.command.upsertDriverAvailability({
       driverId: data.metadata.driverId,
       isAvailable: true,
-      status: "online",
+      status: 'online',
       socketId: data.metadata.senderId
     });
     if(driverAvailable.err){
       commonHelper.log(['ERROR','domain-locationUpdate'],{error:driverAvailable.err, message:'failed to upsert driver availability'});
       return wrapper.error(driverAvailable.err);
     }
- 
+
     return wrapper.data(geoaddlocation);
   }
 
@@ -164,7 +166,7 @@ class Driver {
     }
 
   }
-  
+
   async requestPickup(data) {
     try {
       const ctx = 'domain-requestPickup';
@@ -193,22 +195,22 @@ class Driver {
         timestamp: new Date().toISOString(),
       };
       const event = {
-        topic:'order-driver-request-pickup', 
+        topic:'order-driver-request-pickup',
         body:matchingEvent
-      }
-      await producer.kafkaSendProducerAsync(event)
+      };
+      await producer.kafkaSendProducerAsync(event);
       // set data to redis
       const key = `DRIVER:REQUEST-PICKUP:${orderId}:${driverId}`;
       await this.redisClient.setDataEx(key,matchingEvent,300);
-      
-      return wrapper.data(matchingEvent)
+
+      return wrapper.data(matchingEvent);
     } catch (error) {
       /* istanbul ignore next */
       return wrapper.error(error);
     }
 
   }
-  
+
   async driverGo(data) {
     try {
       const ctx = 'domain-driverGo';
@@ -216,7 +218,7 @@ class Driver {
       const {driverId} = metadata;
       const order = await this.query.findOrder(orderId);
       if(order.err || !order.data){
-        commonHelper.log(['ERROR','domain-driverGo'],{ error: order.err, message: 'order not found' })
+        commonHelper.log(['ERROR','domain-driverGo'],{ error: order.err, message: 'order not found' });
         return wrapper.error(new NotFoundError({ message: 'order not found', code: 4004 }));
       }
       const matchingEvent = {
@@ -227,13 +229,13 @@ class Driver {
         timestamp: new Date().toISOString(),
       };
       const event = {
-        topic:'order-driver-request-pickup', 
+        topic:'order-driver-request-pickup',
         body:matchingEvent
-      }
-      await producer.kafkaSendProducerAsync(event)
+      };
+      await producer.kafkaSendProducerAsync(event);
       commonHelper.log(['INFO','domain-driverGo'],`success send notification, message :${JSON.stringify(matchingEvent)}`);
-      
-      return wrapper.data(matchingEvent)
+
+      return wrapper.data(matchingEvent);
     } catch (error) {
       /* istanbul ignore next */
       return wrapper.error(error);
@@ -244,7 +246,9 @@ class Driver {
   async broadcastPickupPassanger(data) {
     const routeSummary = await this.redisClient.getData(`USER:ROUTE:${data.message.userId}`);
     const cacheRoute = JSON.parse(routeSummary.data);
-    const drivers = await this.redisClient.getNearbyDrivers(data.message.routeSummary?.route?.origin?.longitude || cacheRoute.route?.origin?.longitude, data.message.routeSummary?.route?.origin?.latitude || cacheRoute.route?.origin?.latitude, 3);
+    const drivers = await this.redisClient.getNearbyDrivers(data.message.routeSummary?.route?.origin?.longitude ||
+      cacheRoute.route?.origin?.longitude, data.message.routeSummary?.route?.origin?.latitude ||
+      cacheRoute.route?.origin?.latitude, 3);
     if(drivers.err){
       // retry in case of error
       commonHelper.log(['ERROR','domain-broadcastPickupPassanger'],{error:drivers.err, message:'failed to get nearby drivers'});
@@ -277,7 +281,8 @@ class Driver {
         commonHelper.log(['INFO','domain-broadcastPickupPassanger'],`driver found nearby: ${driverId}, socketId: ${payload.socketId}`);
         const key = `PASSANGER:PICKUP:${driverId}`;
         await this.redisClient.setDataEx(key,payload,300);
-        global.io.to(data.socketId).emit('pickup-passanger', {routeSummary:payload.routeSummary, passangerId: payload.passangerId, orderId:data.message.orderTempId});
+        global.io.to(data.socketId).emit('pickup-passanger',
+          {routeSummary:payload.routeSummary, passangerId: payload.passangerId, orderId:data.message.orderTempId});
       }else{
         commonHelper.log(['INFO','domain-broadcastPickupPassanger'],`socket ID not found in active connections: ${payload.socketId}`);
         const key = `PASSANGER:PICKUP:${driverId}`;
@@ -288,28 +293,29 @@ class Driver {
     commonHelper.log(['INFO','domain-broadcastPickupPassanger'],'no drivers found nearby');
     return wrapper.error(new NotFoundError({message:'no drivers found nearby',code:4004}));
   }
-  
-  async notifyDriverForPickup(data) {
-      const driverInfo = await this.query.findDriver(data.driver_id);
-      if(driverInfo.err || _.isEmpty(driverInfo.data)){
-        commonHelper.log(['ERROR','domain-broadcastPickupPassanger'],{error:driverInfo.err, message:`driver not found: ${data.driver_id}`});
-        return wrapper.error(new NotFoundError({message:'no drivers found nearby',code:4004}));
-      }
 
-      const payload = {
-        driverId:data.driver_id,
-        passangerId: data.passanger_id,
-        routeSummary: data.route_summary,
-        socketId: driverInfo.data[0].socketId,
-        orderId: data.order_id
-      };
-      const key = `DRIVER:INTRUCSTION:${data.driver_id}`;
-      await this.redisClient.setDataEx(key,payload,300);
-      if(global.io.sockets.sockets.has(payload.socketId)){
-        commonHelper.log(['INFO','domain-notifyDriverForPickup'],`driver found: ${data.driver_id}, socketId: ${payload.socketId}`);
-        global.io.to(data.socketId).emit('send-driver-go-instruction', {routeSummary:payload.routeSummary, passangerId: payload.passangerId, orderId:payload.orderId});
-      }
-      return wrapper.data();
+  async notifyDriverForPickup(data) {
+    const driverInfo = await this.query.findDriver(data.driver_id);
+    if(driverInfo.err || _.isEmpty(driverInfo.data)){
+      commonHelper.log(['ERROR','domain-broadcastPickupPassanger'],{error:driverInfo.err, message:`driver not found: ${data.driver_id}`});
+      return wrapper.error(new NotFoundError({message:'no drivers found nearby',code:4004}));
+    }
+
+    const payload = {
+      driverId:data.driver_id,
+      passangerId: data.passanger_id,
+      routeSummary: data.route_summary,
+      socketId: driverInfo.data[0].socketId,
+      orderId: data.order_id
+    };
+    const key = `DRIVER:INTRUCSTION:${data.driver_id}`;
+    await this.redisClient.setDataEx(key,payload,300);
+    if(global.io.sockets.sockets.has(payload.socketId)){
+      commonHelper.log(['INFO','domain-notifyDriverForPickup'],`driver found: ${data.driver_id}, socketId: ${payload.socketId}`);
+      global.io.to(data.socketId).emit('send-driver-go-instruction',
+        {routeSummary:payload.routeSummary, passangerId: payload.passangerId, orderId:payload.orderId});
+    }
+    return wrapper.data();
   }
 
 }

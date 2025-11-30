@@ -195,7 +195,6 @@ const driverGo = async (data, callback) => {
       commandHandler.driverGo(result.data);
   };
   const result = await postRequest(validatePayload);
-  console.log(result.err,"JANCOOOK")
   if (result.err){
     callback({
       success: false,

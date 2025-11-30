@@ -148,7 +148,7 @@ class Query {
     const result = await this.db.preparedQuery(query, [id]);
     return result;
   }
-  
+
   async findDriver(driverId) {
     const query = `
       SELECT 
