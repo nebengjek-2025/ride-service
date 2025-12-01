@@ -4,16 +4,17 @@ const timestamp = moment().local();
 const config = require('../../../infra');
 const commonHelper = require('all-in-one');
 const kafkaConfig = config.get('/kafka');
-
+const ca   = Buffer.from(kafkaConfig.kafkaCaCert, 'base64').toString('utf-8');
+const cert = Buffer.from(kafkaConfig.kafkaCertBase64, 'base64').toString('utf-8');
+const key  = Buffer.from(kafkaConfig.KafkaKeyBase64, 'base64').toString('utf-8');
 const kafka = new Kafka({
-  clientId: kafkaConfig.kafkaClientId,
-  brokers: [kafkaConfig.kafkaHost],
-  ssl: false,
-  // sasl: {
-  //   mechanism: 'plain',
-  // username: kafkaConfig.kafkaSaslUsername,
-  // password: kafkaConfig.kafkaSaslPassword
-  // },
+  brokers: [`${kafkaConfig.kafkaHost}`],
+  ssl: {
+    rejectUnauthorized: true,
+    ca: [ca],
+    cert,
+    key
+  },
   logLevel: logLevel.INFO
 });
 const ctx = 'kafka-producer';

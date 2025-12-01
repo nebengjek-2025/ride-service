@@ -67,6 +67,9 @@ const config = {
     kafkaSaslMechanism: process.env.KAFKA_SASL_MECHANISM,
     kafkaSaslUsername: process.env.KAFKA_SASL_USERNAME,
     kafkaSaslPassword: process.env.KAFKA_SASL_PASSWORD,
+    kafkaCaCert: process.env.KAFKA_CA_CERT_BASE64,
+    kafkaCertBase64: process.env.KAFKA_CLIENT_CERT_BASE64,
+    KafkaKeyBase64: process.env.KAFKA_CLIENT_KEY_BASE64,
   }
 };
 

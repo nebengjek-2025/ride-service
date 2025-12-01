@@ -30,7 +30,7 @@ What things you need to install to run this project:
 - Node.js v20
 - Node Package Manager v10
 - Socket.io
-- MongoDB
+- MySQL
 - Kafka
 - RedisDB
 ```

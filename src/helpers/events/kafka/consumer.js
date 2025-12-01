@@ -1,21 +1,24 @@
+const fs = require('fs');
+const path = require('path');
 const { Kafka,PartitionAssigners: { roundRobin },logLevel } = require('kafkajs');
 const commonHelper = require('all-in-one');
 const config = require('../../../infra');
 const ctx = 'kafka-confluent-consumer';
 
-
 class ConsumerKafka {
   constructor(data) {
     const kafkaConfig = config.get('/kafka');
+    const ca   = Buffer.from(kafkaConfig.kafkaCaCert, 'base64').toString('utf-8');
+    const cert = Buffer.from(kafkaConfig.kafkaCertBase64, 'base64').toString('utf-8');
+    const key  = Buffer.from(kafkaConfig.KafkaKeyBase64, 'base64').toString('utf-8');
     const kafka = new Kafka({
-      clientId: kafkaConfig.kafkaClientId,
-      brokers: [kafkaConfig.kafkaHost],
-      ssl: false,
-      // sasl: {
-      // mechanism: 'plain',
-      // username: kafkaConfig.kafkaSaslUsername,
-      // password: kafkaConfig.kafkaSaslPassword
-      // },
+      brokers: [`${kafkaConfig.kafkaHost}`],
+      ssl: {
+        rejectUnauthorized: true,
+        ca: [ca],
+        cert,
+        key
+      },
       logLevel: logLevel.INFO
     });
     this.consumer = kafka.consumer({
@@ -34,7 +37,7 @@ class ConsumerKafka {
       await this.consumer.connect();
       commonHelper.log(ctx,'Connected to Kafka broker');
     } catch (error) {
-      commonHelper.log(['ERROR',ctx],`Error connecting to Kafka broker: ${error.message}`);
+      commonHelper.log(['ERROR',ctx],`Error connecting to Kafka consumer broker: ${error.message}`);
       throw error;
     }
   }
