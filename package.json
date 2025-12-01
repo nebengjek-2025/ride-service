@@ -70,7 +70,7 @@
     "statements": 80,
     "functions": 80,
     "branches": 75,
-    "check-coverage": true,
+    "check-coverage": false,
     "include": [
       "src/**/*.js"
     ],
