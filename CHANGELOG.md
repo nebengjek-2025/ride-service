@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.2](https://github.com/nebengjek-2025/ride-service/compare/v1.2.1...v1.2.2) (2025-12-01)
+
+
+### Bug Fixes
+
+* lint ([8f6e6fc](https://github.com/nebengjek-2025/ride-service/commit/8f6e6fc9c36a2da54541ead5120c40a789128f6b))
+* pipeline config ([a1ae66d](https://github.com/nebengjek-2025/ride-service/commit/a1ae66d8b74b2f1df8b4b8e56f47531127efb189))
+
 ### [1.2.1](https://github.com/nebengjek-2025/ride-service/compare/v1.2.0...v1.2.1) (2025-11-30)
 
 
