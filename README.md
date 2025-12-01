@@ -1,10 +1,9 @@
-```markdown
-# Ride Service
+# Driver Service
 This project written in javascript using ExpressJS based on a clean architecture that represents DDD and CQRS patterns. 
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=nebengjek-2025_user-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=nebengjek-2025_user-service)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=nebengjek-2025_user-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=nebengjek-2025_user-service)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=nebengjek-2025_user-service&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=nebengjek-2025_user-service)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=nebengjek-2025_ride-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=nebengjek-2025_ride-service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=nebengjek-2025_ride-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=nebengjek-2025_ride-service)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=nebengjek-2025_ride-service&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=nebengjek-2025_ride-service)
 
 ## Project Structure
 - [ ] `src/`
@@ -14,13 +13,14 @@ This project written in javascript using ExpressJS based on a clean architecture
     - [ ] `databases/`: contains database configurations and commands.
   - [ ] `infra/`: define the app configuration.
   - [ ] `modules/`: define the core domain.
-    - [ ] `users/`: user modules domain.
+    - [ ] `driver/`: user modules domain.
       - [ ] `handlers/`: defines call handlers from repositories.
       - [ ] `repositories/`: contains user commands and queries.
       - [ ] `utils/`: contains domain utils.
 - [ ] `test/`: contains testing purpose.
   - [ ] `integration/`
   - [ ] `unit/`
+
 
 ## Getting Started
 ### Prerequisites
@@ -30,6 +30,7 @@ What things you need to install to run this project:
 ```
 - Node.js v20
 - Node Package Manager v10
+- Socket.io
 - MySQL
 - Kafka
 - RedisDB
@@ -110,7 +111,7 @@ Get coverage value for this system:
 $ npm run cover
 ```
 
-### Check coding style with lint analysis
+### Check coding style with lint analysis ###
 It is encouraged to run lint analysis before push your code to make sure that there are no issues on your coding style / formatting
 ```
 $ npm run lint
@@ -160,7 +161,6 @@ NebengJek is a ride-sharing app that connects users with shared rides, system is
 * [ExpressJS] The rest framework used
 * [Npm] - Dependency Management
 * [Docker] - Container Management
-```
 
 **Perubahan utama:**
 1. ✅ Tambah `.env.example` lengkap dengan values dari Docker Compose
