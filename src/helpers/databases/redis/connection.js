@@ -33,7 +33,7 @@ const createConnectionPool = async (config) => {
   redisClient = new Redis({
     host: config.host,
     port: config.port,
-    // password: config.password,
+    password: config.password,
     showFriendlyErrorStack: true,
     reconnectOnError: function(err) {
       return err.message.includes('READONLY');
@@ -41,9 +41,9 @@ const createConnectionPool = async (config) => {
     enableOfflineQueue: true,
     enableReadyCheck: true,
     slotsRefreshTimeout: 1000,
-    // tls: {
-    //   rejectUnauthorized: true
-    // },
+    tls: {
+      rejectUnauthorized: true
+    },
   });
   redisClient.on('connect', () => {
     commonHelper.log(['redis'],'Connected to Redis Pool');

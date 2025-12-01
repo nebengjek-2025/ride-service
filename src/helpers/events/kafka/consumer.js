@@ -9,15 +9,15 @@ class ConsumerKafka {
   constructor(data) {
     const kafkaConfig = config.get('/kafka');
     const ca   = Buffer.from(kafkaConfig.kafkaCaCert, 'base64').toString('utf-8');
-    const cert = Buffer.from(kafkaConfig.kafkaCertBase64, 'base64').toString('utf-8');
-    const key  = Buffer.from(kafkaConfig.KafkaKeyBase64, 'base64').toString('utf-8');
     const kafka = new Kafka({
       brokers: [`${kafkaConfig.kafkaHost}`],
       ssl: {
-        rejectUnauthorized: true,
-        ca: [ca],
-        cert,
-        key
+        ca:[ca]
+      },
+      sasl:{
+        mechanism:'plain',
+        username:kafkaConfig.kafkaSaslUsername,
+        password:kafkaConfig.kafkaSaslPassword
       },
       logLevel: logLevel.INFO
     });
